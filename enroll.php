@@ -4,7 +4,7 @@ require_once 'db_connect.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html?error=auth_required");
+    header("Location: login.php?error=auth_required");
     exit();
 }
 

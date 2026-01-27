@@ -289,7 +289,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <div class="auth-footer">
-          Pas encore de compte ? <a href="signup.html">S'inscrire gratuitement</a>
+          Pas encore de compte ? <a href="signup.php">S'inscrire gratuitement</a>
         </div>
       </div>
     </section>

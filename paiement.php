@@ -4,7 +4,7 @@ require_once 'config.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html?error=auth_required");
+    header("Location: login.php?error=auth_required");
     exit();
 }
 
@@ -79,7 +79,7 @@ $email = ''; // We didn't store email in session during login, only ID and Name.
             <li><a href="dashboard.php">Mon Espace</a></li>
             <li id="logout"><a href="logout.php">Déconnexion</a></li>
         <?php else: ?>
-            <li><a href="login.html">Connexion</a></li>
+            <li><a href="login.php">Connexion</a></li>
         <?php endif; ?>
       </ul>
     </nav>

@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $pdo->commit();
 
         // Redirect to login page
-        header("Location: login.html?signup=success");
+        header("Location: login.php?signup=success");
         exit();
 
     } catch (PDOException $e) {

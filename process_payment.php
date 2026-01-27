@@ -4,7 +4,7 @@ require_once 'config.php';
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html?error=auth_required_for_payment");
+    header("Location: login.php?error=auth_required_for_payment");
     exit();
 }
 

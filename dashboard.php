@@ -4,7 +4,7 @@ require_once 'db_connect.php';
 
 // Check if logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit();
 }
 

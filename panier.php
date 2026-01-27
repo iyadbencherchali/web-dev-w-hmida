@@ -187,7 +187,7 @@ if (!empty($_SESSION['cart'])) {
             <li><a href="dashboard.php">Mon Espace</a></li>
             <li id="logout"><a href="logout.php">Déconnexion</a></li>
         <?php else: ?>
-            <li><a href="login.html">Connexion</a></li>
+            <li><a href="login.php">Connexion</a></li>
         <?php endif; ?>
       </ul>
     </nav>
