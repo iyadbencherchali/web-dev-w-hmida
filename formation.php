@@ -52,8 +52,8 @@ $course_images = [
         <li><a href="formation.php">Formations</a></li>
         <li><a href="evenements.html">Évènements</a></li>
         <li><a href="blog.html">Blog</a></li>
-        <li><a href="panier.html">Panier</a></li>
-        <li><a href="paiement.html">Paiement</a></li>
+        <li><a href="panier.php">Panier</a></li>
+        <li><a href="paiement.php">Paiement</a></li>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="logout.php">Déconnexion</a></li>
         <?php else: ?>

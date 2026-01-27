@@ -35,6 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Save first name for dashboard
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name'] = $user['last_name'];
+            
+            // Clear cart to ensure isolation between profiles
+            $_SESSION['cart'] = [];
 
             // Redirect based on role
             if ($user['role'] === 'admin') {

@@ -78,8 +78,8 @@ $course_images = [
                 <li><a href="formation.php">Formations</a></li>
                 <li><a href="evenements.html">Évènements</a></li>
                 <li><a href="blog.html">Blog</a></li>
-                <li><a href="panier.html">Panier</a></li>
-                <li><a href="paiement.html">Paiement</a></li>
+                <li><a href="panier.php">Panier</a></li>
+                <li><a href="paiement.php">Paiement</a></li>
                 <li><a href="dashboard.php" class="active"><b>Mon Espace</b></a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>

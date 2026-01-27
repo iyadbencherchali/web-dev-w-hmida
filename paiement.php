@@ -2,6 +2,12 @@
 session_start();
 require_once 'config.php';
 
+// Redirect if not logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.html?error=auth_required");
+    exit();
+}
+
 // Redirect if cart is empty
 if (empty($_SESSION['cart'])) {
     header("Location: formation.php");

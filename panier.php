@@ -182,7 +182,7 @@ if (!empty($_SESSION['cart'])) {
         <li><a href="evenements.html">Évènements </a></li>
         <li><a href="blog.html">Blog </a></li>
         <li><a href="panier.php" class="active"><b>Panier</b></a></li>
-        <li><a href="paiement.html">Paiement </a></li>
+        <li><a href="paiement.php">Paiement </a></li>
         <?php if (isset($_SESSION['user_id'])): ?>
             <li><a href="dashboard.php">Mon Espace</a></li>
             <li id="logout"><a href="logout.php">Déconnexion</a></li>
@@ -265,7 +265,7 @@ if (!empty($_SESSION['cart'])) {
                 <span><?php echo number_format($total, 0, '.', ','); ?> DA</span>
               </div>
 
-              <a href="paiement.html" class="btn btn-primary checkout-btn" id="checkout-btn">Passer au paiement</a>
+              <a href="paiement.php" class="btn btn-primary checkout-btn" id="checkout-btn">Passer au paiement</a>
               <a href="formation.php" class="continue-shopping">Continuer vos achats</a>
             </div>
         <?php endif; ?>
