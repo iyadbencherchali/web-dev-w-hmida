@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width , initial-scale=1.0">
+  <title>Blog | Centre De Formation</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* =========================================
+           EXPERT UI/UX & 3D DESIGN SYSTEM
+           ========================================= */
+
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      --neon-accent: #0ea5e9;
+      --depth-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      background-color: #0f172a;
+      /* Dark theme base */
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    /* 1. Success Stories Section - 3D Stage */
+    .success-stories-section {
+      background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+      padding: 6rem 2rem;
+      position: relative;
+      perspective: 2000px;
+      /* Deep perspective for the section */
+    }
+
+    /* Ambient Light Orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      z-index: 0;
+      animation: float 10s infinite ease-in-out;
+    }
+
+    .orb-1 {
+      top: -10%;
+      left: -10%;
+      width: 500px;
+      height: 500px;
+      background: var(--neon-accent);
+    }
+
+    .orb-2 {
+      bottom: -10%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: #8b5cf6;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(30px, 50px);
+      }
+    }
+
+    .section-title-center {
+      color: white;
+      margin-bottom: 4rem;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      font-size: 2.5rem;
+      letter-spacing: -1px;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 3rem;
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* 3D Glass Card */
+    .testimonial-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: var(--glass-shadow);
+      transform-style: preserve-3d;
+      transform: perspective(1000px);
+      transition: transform 0.1s ease, box-shadow 0.3s ease;
+      /* Fast transform for JS, smooth shadow */
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Shine Effect */
+    .testimonial-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: skewX(-25deg);
+      transition: 0.5s;
+      pointer-events: none;
+    }
+
+    .testimonial-card:hover::after {
+      left: 150%;
+    }
+
+    .testimonial-card:hover {
+      box-shadow: 0 20px 60px rgba(14, 165, 233, 0.2);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .card-content {
+      transform: translateZ(20px);
+      /* Lift content off card */
+    }
+
+    .testimonial-card p {
+      color: #cbd5e1;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transform: translateZ(30px);
+      /* Lift info higher */
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--neon-accent), #3b82f6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-details strong {
+      display: block;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .user-details span {
+      color: var(--neon-accent);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* 2. FAQ Section - Modern Accordion */
+    .faq-section {
+      background: #f8fafc;
+      padding: 6rem 2rem;
+      position: relative;
+      z-index: 2;
+      border-top-left-radius: 60px;
+      border-top-right-radius: 60px;
+      margin-top: -40px;
+      /* Overlap effect */
+      box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .faq-section .section-title-center {
+      color: var(--secondary);
+      text-shadow: none;
+    }
+
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .faq-item {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      /* Bouncy transition */
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+      transform: scale(1);
+    }
+
+    .faq-item.active {
+      transform: scale(1.02);
+      box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15);
+      border-color: var(--neon-accent);
+      z-index: 10;
+    }
+
+    .faq-question {
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--secondary);
+      font-size: 1.2rem;
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out;
+      padding: 0 2rem;
+      color: var(--text);
+      opacity: 0;
+      line-height: 1.7;
+    }
+
+    .faq-item.active .faq-answer {
+      padding-bottom: 2rem;
+      opacity: 1;
+    }
+
+    .faq-icon {
+      width: 36px;
+      height: 36px;
+      background: #f1f5f9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s ease;
+      color: var(--secondary);
+    }
+
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+      background: var(--neon-accent);
+      color: white;
+      box-shadow: 0 0 15px var(--neon-accent);
+    }
+
+    /* 3. Newsletter Section - Floating Card */
+    .newsletter-section {
+      padding: 6rem 2rem;
+      background: #f8fafc;
+      perspective: 1000px;
+    }
+
+    .newsletter-box {
+      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+      border-radius: 30px;
+      padding: 5rem 2rem;
+      text-align: center;
+      color: white;
+      max-width: 900px;
+      margin: 0 auto;
+      box-shadow: 0 30px 60px rgba(37, 99, 235, 0.3);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.3s ease;
+    }
+
+    .newsletter-box:hover {
+      transform: translateY(-10px) rotateX(2deg);
+    }
+
+    /* Animated Background Particles */
+    .newsletter-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: radial-gradient(white 1px, transparent 1px);
+      background-size: 30px 30px;
+      opacity: 0.1;
+      animation: moveBg 20s linear infinite;
+    }
+
+    @keyframes moveBg {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 0 100%;
+      }
+    }
+
+    .newsletter-content {
+      position: relative;
+      z-index: 1;
+      transform: translateZ(40px);
+    }
+
+    .newsletter-box h2 {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      letter-spacing: -1px;
+    }
+
+    .newsletter-form {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.5rem;
+      border-radius: 100px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      max-width: 500px;
+      margin: 2rem auto 0;
+      display: flex;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transform: translateZ(20px);
+    }
+
+    .newsletter-form input {
+      background: transparent;
+      border: none;
+      color: white;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      width: 100%;
+      outline: none;
+    }
+
+    .newsletter-form input::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .newsletter-form button {
+      background: white;
+      color: #2563eb;
+      font-weight: 800;
+      padding: 1rem 2.5rem;
+      border-radius: 100px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .newsletter-form button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+
+<body class="no-sidebar">
+
+  <header>
+    <a href="index.html" class="logo-link" style="margin-left: 20px;">
+      <img src="logo/Desktop - 3.png" alt="Centre de Formation" style="height: 70px;">
+    </a>
+
+
+    <nav>
+      <ul>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="formation.php">Formations</a></li>
+        <li><a href="evenements.html">Évènements</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="panier.php">Panier</a></li>
+        <li><a href="paiement.php">Paiement</a></li>
+        <li><a href="login.php">Connexion</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- SUCCESS STORIES (3D Stage) -->
+    <section class="success-stories-section">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+
+      <h2 class="section-title-center">Success Stories</h2>
+      <div class="testimonials-grid">
+        <!-- Card 1 -->
+        <div class="testimonial-card tilt-card">
+          <div class="card-content">
+            <p>"The articles on this blog helped me prepare for my first job interview. Highly recommended!"</p>
+            <div class="user-info">
+              <div class="user-avatar">AK</div>
+              <div class="user-details">
+                <strong>Amine K.</strong>
+                <span>Junior Dev</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="testimonial-card tilt-card">
+          <div class="card-content">
+            <p>"I learned so much about CSS Grid from the tutorials here. Clear, concise, and very practical."</p>
+            <div class="user-info">
+              <div class="user-avatar">SM</div>
+              <div class="user-details">
+                <strong>Sarah M.</strong>
+                <span>Web Designer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="testimonial-card tilt-card">
+          <div class="card-content">
+            <p>"Great resource for keeping up with Python updates. A daily read for me and my team."</p>
+            <div class="user-info">
+              <div class="user-avatar">KB</div>
+              <div class="user-details">
+                <strong>Karim B.</strong>
+                <span>Data Scientist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION (Modern Accordion) -->
+    <section class="faq-section">
+      <h2 class="section-title-center">Frequently Asked Questions</h2>
+      <div class="faq-container">
+
+        <div class="faq-item">
+          <div class="faq-question">
+            How often do you publish new articles?
+            <span class="faq-icon">▼</span>
+          </div>
+          <div class="faq-answer">
+            <p>We publish new content every week, typically on Tuesdays and Fridays. Subscribe to our newsletter to
+              never miss an update!</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            Can I contribute an article?
+            <span class="faq-icon">▼</span>
+          </div>
+          <div class="faq-answer">
+            <p>Yes! We welcome guest posts from students, instructors, and industry professionals. Contact us via the
+              form below to pitch your idea.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            Are the tutorials free?
+            <span class="faq-icon">▼</span>
+          </div>
+          <div class="faq-answer">
+            <p>Yes, all articles and tutorials on the blog are completely free to access. We believe in open education
+              for everyone.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question">
+            Do you offer certificates for reading?
+            <span class="faq-icon">▼</span>
+          </div>
+          <div class="faq-answer">
+            <p>While reading the blog doesn't provide a certificate, completing our full courses (available on the
+              Formations page) does earn you a verified certificate.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- NEWSLETTER (Floating 3D) -->
+    <section class="newsletter-section">
+      <div class="newsletter-box">
+        <div class="newsletter-content">
+          <h2>Stay Updated</h2>
+          <p>Get the latest articles and learning tips delivered to your inbox.</p>
+          <form class="newsletter-form">
+            <input type="email" placeholder="Enter your email address">
+            <button type="submit">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p><strong>Contact :</strong> 0667 81 23 51 | contact@formationpro.dz</p>
+    <p>Adresse : USDB Pavillon 1, Blida</p>
+    <p>&copy; 2025 Centre de Formation Professionnelle</p>
+    <img src="images.jpg" alt="Image du panier" width="100">
+  </footer>
+
+  <script>
+    // FAQ Accordion Logic
+    document.querySelectorAll('.faq-question').forEach(question => {
+      question.addEventListener('click', () => {
+        const item = question.parentElement;
+        const answer = item.querySelector('.faq-answer');
+
+        // Close other items
+        document.querySelectorAll('.faq-item').forEach(otherItem => {
+          if (otherItem !== item && otherItem.classList.contains('active')) {
+            otherItem.classList.remove('active');
+            otherItem.querySelector('.faq-answer').style.maxHeight = null;
+          }
+        });
+
+        // Toggle current item
+        item.classList.toggle('active');
+
+        if (item.classList.contains('active')) {
+          answer.style.maxHeight = answer.scrollHeight + "px";
+        } else {
+          answer.style.maxHeight = null;
+        }
+      });
+    });
+
+    // 3D Tilt Effect Logic
+    const cards = document.querySelectorAll('.tilt-card');
+
+    cards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Calculate rotation based on mouse position
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        const rotateX = ((y - centerY) / centerY) * -10; // Max 10deg rotation
+        const rotateY = ((x - centerX) / centerX) * 10;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        // Reset transform
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+      });
+    });
+  </script>
+
+</body>
+
+</html>
