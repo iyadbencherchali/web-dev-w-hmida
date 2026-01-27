@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evènement Vedette | Centre De Formation</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .title-underline {
+            position: relative;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .title-underline::after {
+            content: "";
+            display: block;
+            position: absolute;
+            left: 50%;
+            bottom: -6px;
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            transition: width 0.45s cubic-bezier(.4, 2.3, .3, 1) 0s;
+        }
+
+        .title-underline:hover::after,
+        .title-underline:focus::after {
+            width: 70%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <a href="evenements.html" class="logo-link" style="margin-left: 20px;">
+            <img src="logo/Desktop - 3.png" alt="Centre de Formation" style="height: 70px;">
+        </a>
+
+        <nav>
+            <ul>
+                <li><a href="index.html">Accueil </a></li>
+                <li><a href="formation.php">Formations </a></li>
+                <li><a href="evenements.html">Évènements </a></li>
+                <li><a href="blog.html">Blog </a></li>
+                <li><a href="panier.html">Panier </a></li>
+                <li><a href="paiement.html">Paiement </a></li>
+                <li><a href="login.html">Connexion </a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <aside>
+        <h2>Navigation Journée</h2>
+        <nav>
+            <ol>
+                <li><a href="#programme">Programme</a></li>
+                <li><a href="#speakers">Intervenants</a></li>
+                <li><a href="#inscription">Inscription</a></li>
+                <li>
+                    <a href="programme-journee.pdf" target="_blank">📥 Télécharger le programme (PDF)</a>
+                </li>
+            </ol>
+        </nav>
+        <div style="margin-top:2rem;color:#64748b;">
+            <strong>Support :</strong>
+            <br>
+            <a href="mailto:contact@formationpro.dz" style="color:#0ea5e9;">contact@formationpro.dz</a>
+            <br><br>
+            <span style="font-size:0.88em;">USDB Pavillon 1, Blida</span>
+        </div>
+    </aside>
+
+    <main>
+        <!-- 1. HERO (Bannière principale) -->
+        <section class="section-padding bg-dark hero-animated" style="text-align:center; padding: 6rem 2rem;">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div style="position:relative; z-index:2;">
+                <h2 class="section-title-center"
+                    style="color:#fff; font-size:3.5rem; margin-bottom:1rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    Journée Leadership & Innovation 2026</h2>
+                <p style="color:#e2e8f0; font-size:1.5rem; margin-bottom:2.5rem; font-weight:300;">
+                    12 mars 2026 • USDB Blida &amp; en ligne (Hybride)
+                </p>
+
+                <div class="glass-panel" style="display:inline-block; padding:2rem; max-width:600px; background:white;">
+                    <p style="margin-bottom:1.5rem; font-size:1.1rem; color:#64748b;">Rejoignez l'élite des leaders de
+                        demain.</p>
+                    <a href="#inscription" class="btn btn-primary"
+                        style="font-size:1.1rem; padding: 1rem 2rem;">S'inscrire maintenant</a>
+                    <a href="#programme" class="btn btn-secondary-dark"
+                        style="font-size:1.1rem; padding: 1rem 2rem; margin-left:1rem;">Voir
+                        le programme</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Description générale -->
+        <section class="section-padding">
+            <h3 class="section-title title-underline" style="text-align:center;width:100%;">Pourquoi participer à
+                l'événement ?</h3>
+            <p style="max-width:720px;margin: 0 auto 2rem auto; text-align:center; font-size:1.15rem;">
+                Cette journée unique rassemble des experts, formateurs et professionnels pour explorer l'excellence en
+                leadership et les innovations de 2026. Ouverte à tous : étudiants, cadres, entrepreneurs ou toute
+                personne souhaitant devenir acteur du changement !
+            </p>
+            <ul style="list-style:inside disc; max-width:660px; margin:0 auto; font-size:1.1rem; color:#0f172a;">
+                <li>Comprendre les pratiques de leadership moderne</li>
+                <li>Booster votre réseau et vos compétences clés</li>
+                <li>Ateliers interactifs et témoignages d'experts</li>
+            </ul>
+        </section>
+
+        <!-- 3. Points forts (Key Highlights) -->
+        <section class="section-padding bg-light" style="padding-bottom:2rem;">
+            <h3 class="section-title-center title-underline" style="text-align:center;width:100%;">Points forts</h3>
+            <div class="features-grid">
+                <div class="feature-block">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Intervenants experts</h3>
+                    <p>Des leaders de l'industrie et formateurs certifiés</p>
+                </div>
+                <div class="feature-block">
+                    <div class="feature-icon">📜</div>
+                    <h3>Attestation offerte</h3>
+                    <p>Recevez un certificat de participation officiel</p>
+                </div>
+                <div class="feature-block">
+                    <div class="feature-icon">📎</div>
+                    <h3>Ressources exclusives</h3>
+                    <p>Slides PDF, replay vidéo, livre blanc</p>
+                </div>
+                <div class="feature-block">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Networking</h3>
+                    <p>Espaces d'échanges & ateliers pratiques</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Programme détaillé (VERTICAL TIMELINE) -->
+        <section class="section-padding" id="programme">
+            <h3 class="section-title title-underline" style="text-align:center;width:100%; margin-bottom:3rem;">
+                Programme de la Journée</h3>
+
+            <div class="timeline-section">
+                <!-- Item 1 -->
+                <div class="timeline-item left">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">09h00</span>
+                        <h4>Ouverture &amp; Bienvenue</h4>
+                        <p>Accueil des participants, café de bienvenue et présentation des objectifs.</p>
+                    </div>
+                </div>
+
+                <!-- Item 2 -->
+                <div class="timeline-item right">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">09h45</span>
+                        <h4>Keynote: Leadership d'impact</h4>
+                        <p>Conférence inspirante par Sarah Martinez sur les tendances 2026.</p>
+                    </div>
+                </div>
+
+                <!-- Item 3 -->
+                <div class="timeline-item left">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">11h00</span>
+                        <h4>Atelier « Innovation Agile »</h4>
+                        <p>Travaux pratiques en groupes : méthodes et outils pour innover.</p>
+                    </div>
+                </div>
+
+                <!-- Item 4 -->
+                <div class="timeline-item right">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">12h30</span>
+                        <h4>Pause Déjeuner &amp; Networking</h4>
+                        <p>Buffet traiteur et opportunités d'échanges avec les experts.</p>
+                    </div>
+                </div>
+
+                <!-- Item 5 -->
+                <div class="timeline-item left">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">14h00</span>
+                        <h4>Table Ronde : Diriger le Futur</h4>
+                        <p>Panel de discussion avec Ilyes Chelly et Dr. Ben Amar.</p>
+                    </div>
+                </div>
+
+                <!-- Item 6 -->
+                <div class="timeline-item right">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-time">15h30</span>
+                        <h4>Q&A & Clôture</h4>
+                        <p>Session questions/réponses et remise des attestations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Les formateurs (Speakers / Experts) -->
+        <section class="section-padding bg-light" id="speakers">
+            <h3 class="section-title-center title-underline" style="text-align:center;width:100%;">Nos Intervenants</h3>
+            <div class="features-grid" style="gap:2.5rem;">
+                <!-- Speaker 1 -->
+                <div class="speaker-card">
+                    <div class="speaker-avatar">
+
+                    </div>
+                    <h3>Iyad Bencherchali</h3>
+                    <div class="speaker-role">Experte Leadership</div>
+                    <p>10+ ans d'expérience en conseil stratégique pour des multinationales.</p>
+                </div>
+
+                <!-- Speaker 2 -->
+                <div class="speaker-card">
+                    <div class="speaker-avatar">
+
+                        <!-- Placeholder fallback if image missing -->
+                    </div>
+                    <h3>Fouad Hmida</h3>
+                    <div class="speaker-role">Coach Innovation</div>
+                    <p>Enseignant chercheur spécialisé dans les méthodologies agiles.</p>
+                </div>
+
+                <!-- Speaker 3 -->
+                <div class="speaker-card">
+                    <div class="speaker-avatar">
+
+                    </div>
+                    <h3>Mme Midoun</h3>
+                    <div class="speaker-role">Tech Entrepreneur</div>
+                    <p>Fondateur de 3 startups et mentor pour jeunes entrepreneurs.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Section finale CTA -->
+        <section class="section-padding" id="inscription">
+            <div class="newsletter-box glass-panel"
+                style="max-width:600px; margin:0 auto; background: linear-gradient(135deg, var(--primary), #06b6d4);">
+                <h2>Prêt·e à participer ?</h2>
+                <p>Réservez gratuitement votre place maintenant et boostez votre avenir professionnel !</p>
+                <form class="newsletter-form"
+                    style="display:flex; gap:0.5rem; justify-content:center; margin-top:1.5rem;">
+                    <input type="email" placeholder="Votre email professionnel"
+                        style="padding:1rem; border-radius:50px; border:none; width:60%;">
+                    <button type="button" class="btn btn-secondary"
+                        style="background:white; color:var(--primary); border:none;">Je m'inscris</button>
+                </form>
+                <br>
+                <span style="color:white; opacity:0.8; font-size:0.9rem;">Besoin d'aide ? <a
+                        href="mailto:contact@formationpro.dz"
+                        style="text-decoration:underline;">contact@formationpro.dz</a></span>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p><strong>Contact :</strong> 0667 81 23 51 | contact@formationpro.dz</p>
+        <p>Adresse : USDB Pavillon 1, Blida</p>
+        <p>&copy; 2025 Centre de Formation Professionnelle</p>
+        <img src="images.jpg" alt="Image du panier" width="100">
+    </footer>
+
+    <style>
+        .inscription-btn-dark:hover {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+        }
+    </style>
+</body>
+
+</html>
