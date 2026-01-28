@@ -69,18 +69,21 @@ $course_images = [
 
     <!-- HEADER -->
     <header>
-        <a href="index.html" class="logo-link" style="margin-left: 20px;">
+        <a href="index.php" class="logo-link" style="margin-left: 20px;">
             <img src="logo/Desktop - 3.png" alt="Centre de Formation" style="height: 70px;">
         </a>
         <nav>
             <ul>
-                <li><a href="index.html">Accueil</a></li>
+                <li><a href="index.php">Accueil</a></li>
                 <li><a href="formation.php">Formations</a></li>
-                <li><a href="evenements.html">Évènements</a></li>
-                <li><a href="blog.html">Blog</a></li>
+                <li><a href="evenements.php">Évènements</a></li>
+                <li><a href="blog.php">Blog</a></li>
                 <li><a href="panier.php">Panier</a></li>
                 <li><a href="paiement.php">Paiement</a></li>
-                <li><a href="dashboard.php" class="active"><b>Mon Espace</b></a></li>
+                <?php 
+                    $dash = ($_SESSION['role'] == 'admin') ? 'admin_dashboard.php' : (($_SESSION['role'] == 'instructor') ? 'instructor_dashboard.php' : 'dashboard.php');
+                ?>
+                <li><a href="<?php echo $dash; ?>" class="active"><b>Mon Espace</b></a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>
         </nav>

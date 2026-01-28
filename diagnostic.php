@@ -53,5 +53,5 @@ if (isset($_SESSION['test_key']) && $_SESSION['test_key'] === 'Hello') {
 
 echo "<br><hr>";
 echo "<strong>DIAGNOSTIC COMPLETE. If all checkmarks are green, your system is healthy.</strong>";
-echo "<br><a href='index.html'>Go to Home</a>";
+echo "<br><a href='index.php'>Go to Home</a>";
 ?>

@@ -6,6 +6,8 @@ require_once 'db_connect.php';
 if (isset($_SESSION['user_id'])) {
     if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
         header("Location: admin_dashboard.php");
+    } elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'instructor') {
+        header("Location: instructor_dashboard.php");
     } else {
         header("Location: dashboard.php");
     }
@@ -42,6 +44,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Redirect based on role
             if ($user['role'] === 'admin') {
                 header("Location: admin_dashboard.php");
+            } elseif ($user['role'] === 'instructor') {
+                header("Location: instructor_dashboard.php");
             } else {
                 header("Location: dashboard.php");
             }
@@ -228,13 +232,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <nav>
       <ul>
-        <li><a href="index.html">Accueil </a></li>
-        <li><a href="formation.php">Formations </a></li>
-        <li><a href="evenements.html">Évènements </a></li>
-        <li><a href="blog.html">Blog </a></li>
-        <li><a href="panier.php">Panier </a></li>
-        <li><a href="paiement.php">Paiement </a></li>
-        <li><a href="login.php" class="active"><b>Connexion</b></a></li>
+        <li><a href="index.php">Accueil</a></li>
+        <li><a href="formation.php">Formations</a></li>
+        <li><a href="evenements.php">Évènements</a></li>
+        <li><a href="blog.php">Blog</a></li>
+        <li><a href="panier.php">Panier</a></li>
+        <li><a href="paiement.php">Paiement</a></li>
+        <?php if (isset($_SESSION['user_id'])): ?>
+                <?php 
+                    $dash = ($_SESSION['role'] == 'admin') ? 'admin_dashboard.php' : (($_SESSION['role'] == 'instructor') ? 'instructor_dashboard.php' : 'dashboard.php');
+                ?>
+                <li><a href="<?php echo $dash; ?>">Mon Espace</a></li>
+            <li><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
+        <?php else: ?>
+            <li><a href="login.php" class="active"><b>Connexion</b></a></li>
+        <?php endif; ?>
       </ul>
     </nav>
   </header>
