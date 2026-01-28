@@ -1,4 +1,33 @@
-<?php session_start(); ?>
+<?php 
+session_start();
+require_once 'config.php';
+
+$success_msg = "";
+$error_msg = "";
+
+// Handle question submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_question'])) {
+    if (!isset($_SESSION['user_id'])) {
+        $error_msg = "Vous devez être connecté pour poser une question.";
+    } else {
+        $subject = trim($_POST['subject']);
+        $question = trim($_POST['question']);
+        
+        if (empty($subject) || empty($question)) {
+            $error_msg = "Veuillez remplir tous les champs.";
+        } else {
+            try {
+                $stmt = $pdo->prepare("INSERT INTO questions (user_id, subject, question, status) VALUES (?, ?, ?, 'new')");
+                $stmt->execute([$_SESSION['user_id'], $subject, $question]);
+                
+                $success_msg = "Votre question a été envoyée avec succès ! Notre équipe vous répondra par email dans les plus brefs délais.";
+            } catch (PDOException $e) {
+                $error_msg = "Erreur lors de l'envoi : " . $e->getMessage();
+            }
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -513,6 +542,52 @@
       </div>
     </section>
 
+     <section class="success-stories-section" style="padding: 4rem 2rem; margin-top: 4rem;">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    
+    <div style="position: relative; z-index: 10; max-width: 800px; margin: 0 auto; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+        <h2 style="color: white; text-align: center; margin-bottom: 2rem; font-size: 2rem;">Une question ? Besoin d'aide ? 💬</h2>
+        <p style="text-align: center; color: #cbd5e1; margin-bottom: 2.5rem;">
+            N'hésitez pas à nous poser vos questions ou à signaler un problème. Notre équipe pédagogique vous répondra directement par email.
+        </p>
+
+        <?php if (!empty($success_msg)): ?>
+            <div style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid rgba(16, 185, 129, 0.3); text-align: center;">
+                ✅ <?php echo $success_msg; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($error_msg)): ?>
+            <div style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid rgba(239, 68, 68, 0.3); text-align: center;">
+                ❌ <?php echo $error_msg; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!isset($_SESSION['user_id'])): ?>
+            <div style="text-align: center;">
+                <a href="login.php" style="display: inline-block; padding: 1rem 2rem; background: var(--neon-accent); color: white; border-radius: 12px; font-weight: 700; text-decoration: none;">Se connecter pour poser une question</a>
+            </div>
+        <?php else: ?>
+            <form method="POST" action="">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: white; margin-bottom: 0.5rem; font-weight: 600;">Sujet</label>
+                    <input type="text" name="subject" required style="width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-size: 1rem;">
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; color: white; margin-bottom: 0.5rem; font-weight: 600;">Votre question</label>
+                    <textarea name="question" required rows="5" style="width: 100%; padding: 1rem; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+
+                <button type="submit" name="submit_question" style="width: 100%; padding: 1rem; background: var(--neon-accent); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease;">
+                    Envoyer ma question 🚀
+                </button>
+            </form>
+        <?php endif; ?>
+    </div>
+  </section>
+
     <!-- NEWSLETTER (Floating 3D) -->
     <section class="newsletter-section">
       <div class="newsletter-box">
@@ -530,6 +605,8 @@
   </main>
 
   <!-- FOOTER -->
+  <!-- SUPPORT SECTION -->
+
   <footer>
     <p><strong>Contact :</strong> 0667 81 23 51 | contact@formationpro.dz</p>
     <p>Adresse : USDB Pavillon 1, Blida</p>

@@ -36,6 +36,34 @@ $course_images = [
     'Microsoft Azure Fundamentals' => '4202105_microsoft_logo_social_social media_icon.png',
     'Google Analytics & Marketing Digital' => '2993685_brand_brands_google_logo_logos_icon.png'
 ];
+
+$success_msg = "";
+$error_msg = "";
+
+// Handle Review Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
+    $rating = intval($_POST['rating']);
+    $comment = trim($_POST['comment']);
+
+    if ($rating < 1 || $rating > 5 || empty($comment)) {
+        $error_msg = "Veuillez donner une note et un commentaire valide.";
+    } else {
+        try {
+            // Check if user already submitted a review
+            $stmt = $pdo->prepare("SELECT id FROM reviews WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+            if ($stmt->fetch()) {
+                $error_msg = "Vous avez déjà soumis un avis.";
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO reviews (user_id, rating, comment, is_approved) VALUES (?, ?, ?, 0)");
+                $stmt->execute([$user_id, $rating, $comment]);
+                $success_msg = "Merci pour votre avis ! Il sera publié après validation.";
+            }
+        } catch (PDOException $e) {
+            $error_msg = "Erreur : " . $e->getMessage();
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -176,6 +204,54 @@ $course_images = [
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+            </div>
+        </section>
+    <!-- REVIEW SUBMISSION SECTION -->
+        <section class="section-padding" style="background: #f8fafc;">
+            <div class="container" style="max-width: 800px; margin: 0 auto;">
+                <h2 class="section-title" style="margin-bottom: 2rem; text-align: center;">⭐ Votre Avis Compte</h2>
+                
+                <?php if (!empty($success_msg)): ?>
+                    <div style="background: #dcfce7; color: #166534; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #bbf7d0; text-align: center;">
+                        ✅ <?php echo $success_msg; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($error_msg)): ?>
+                    <div style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #fecaca; text-align: center;">
+                        ❌ <?php echo $error_msg; ?>
+                    </div>
+                <?php endif; ?>
+
+                <div style="background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <form method="POST" action="">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <label style="display: block; font-weight: 700; font-size: 1.2rem; color: var(--secondary); margin-bottom: 1rem;">Votre Note</label>
+                            <div class="rating-group" style="display: inline-flex; flex-direction: row-reverse; gap: 0.5rem;">
+                                <?php for($i=5; $i>=1; $i--): ?>
+                                    <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" style="display: none;" required>
+                                    <label for="star<?php echo $i; ?>" style="font-size: 2.5rem; cursor: pointer; color: #e2e8f0; transition: color 0.2s;">★</label>
+                                <?php endfor; ?>
+                            </div>
+                            <style>
+                                .rating-group input:checked ~ label,
+                                .rating-group label:hover,
+                                .rating-group label:hover ~ label {
+                                    color: #fbbf24 !important;
+                                }
+                            </style>
+                        </div>
+
+                        <div style="margin-bottom: 2rem;">
+                            <label style="display: block; font-weight: 700; color: var(--secondary); margin-bottom: 0.5rem;">Votre Témoignage</label>
+                            <textarea name="comment" required rows="4" placeholder="Partagez votre expérience avec nos formations..." style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 16px; font-size: 1rem; resize: vertical; transition: border-color 0.3s;"></textarea>
+                        </div>
+
+                        <button type="submit" name="submit_review" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                            Publier mon avis 🚀
+                        </button>
+                    </form>
+                </div>
             </div>
         </section>
     </main>

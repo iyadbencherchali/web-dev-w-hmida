@@ -1,4 +1,24 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+require_once 'db_connect.php';
+
+// Fetch approved reviews
+$reviews = [];
+try {
+    $stmt = $pdo->query("
+        SELECT r.*, u.first_name, u.last_name 
+        FROM reviews r 
+        JOIN users u ON r.user_id = u.id 
+        WHERE r.is_approved = 1 
+        ORDER BY r.created_at DESC
+    ");
+    $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Silently fail if table doesn't exist yet
+    $reviews = [];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -262,58 +282,51 @@
 
         <!-- 5. TESTIMONIALS WITH CAROUSEL -->
         <section id="testimonials" class="section-padding">
-            <h2 class="section-title-center">What Students Say</h2>
+            <h2 class="section-title-center">Ce Que Disent Nos Étudiants</h2>
 
-            <div class="testimonials-carousel">
-                <button class="carousel-btn prev-btn" onclick="changeSlide(-1)">‹</button>
+            <?php if (empty($reviews)): ?>
+                <div style="text-align: center; padding: 4rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💬</div>
+                    <p style="color: var(--text-light);">Aucun témoignage pour le moment. Soyez le premier à partager votre expérience !</p>
+                </div>
+            <?php else: 
+                // Split reviews into chunks of 2 for carousel slides
+                $reviews_chunks = array_chunk($reviews, 2);
+                $total_slides = count($reviews_chunks);
+            ?>
+                <div class="testimonials-carousel">
+                    <button class="carousel-btn prev-btn" onclick="changeSlide(-1)">‹</button>
 
-                <div class="testimonials-wrapper">
-                    <div class="testimonials-slide active">
-                        <div class="testimonials-grid">
-                            <div class="testimonial-card">
-                                <p>"Udemy en 2ème position. This platform changed my career!"</p>
-                                <div class="user-info">
-                                    <strong>Iyad Bencherchali</strong>
-                                    <span>⭐⭐⭐⭐⭐</span>
+                    <div class="testimonials-wrapper">
+                        <?php foreach ($reviews_chunks as $index => $chunk): ?>
+                            <div class="testimonials-slide <?php echo $index === 0 ? 'active' : ''; ?>">
+                                <div class="testimonials-grid">
+                                    <?php foreach ($chunk as $review): 
+                                        // Generate star rating
+                                        $stars = str_repeat('⭐', $review['rating']);
+                                    ?>
+                                        <div class="testimonial-card">
+                                            <p>"<?php echo htmlspecialchars($review['comment']); ?>"</p>
+                                            <div class="user-info">
+                                                <strong><?php echo htmlspecialchars($review['first_name'] . ' ' . $review['last_name']); ?></strong>
+                                                <span><?php echo $stars; ?></span>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
                             </div>
-                            <div class="testimonial-card">
-                                <p>"Te9ra lyoum tefhem lbareh. Excellent instructors."</p>
-                                <div class="user-info">
-                                    <strong>Fouaad Hmida</strong>
-                                    <span>⭐⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
 
-                    <div class="testimonials-slide">
-                        <div class="testimonials-grid">
-                            <div class="testimonial-card">
-                                <p>"The courses are well-structured and easy to follow. I learned so much!"</p>
-                                <div class="user-info">
-                                    <strong>Sarah Martinez</strong>
-                                    <span>⭐⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                            <div class="testimonial-card">
-                                <p>"Best investment in my education. The instructors are top-notch professionals."</p>
-                                <div class="user-info">
-                                    <strong>Ahmed El Mansouri</strong>
-                                    <span>⭐⭐⭐⭐⭐</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button class="carousel-btn next-btn" onclick="changeSlide(1)">›</button>
                 </div>
 
-                <button class="carousel-btn next-btn" onclick="changeSlide(1)">›</button>
-            </div>
-
-            <div class="carousel-dots">
-                <span class="dot active" onclick="currentSlide(1)"></span>
-                <span class="dot" onclick="currentSlide(2)"></span>
-            </div>
+                <div class="carousel-dots">
+                    <?php for ($i = 1; $i <= $total_slides; $i++): ?>
+                        <span class="dot <?php echo $i === 1 ? 'active' : ''; ?>" onclick="currentSlide(<?php echo $i; ?>)"></span>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
         </section>
 
         <script>

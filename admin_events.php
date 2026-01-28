@@ -304,6 +304,7 @@ $upcoming_events = count(array_filter($events, fn($e) => $e['event_date'] >= dat
                 <li><a href="admin_courses.php">📚 Modération</a></li>
                 <li><a href="admin_events.php" class="active"><b>📅 Événements</b></a></li>
                 <li><a href="admin_sales.php">💳 Finances</a></li>
+                <li><a href="admin_questions.php">💬 Support</a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>
         </nav>
