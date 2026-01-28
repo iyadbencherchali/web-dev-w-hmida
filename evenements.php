@@ -1,41 +1,74 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+require_once 'config.php';
+
+$success_msg = "";
+$error_msg = "";
+
+// Handle event proposal submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_event'])) {
+    if (!isset($_SESSION['user_id'])) {
+        $error_msg = "Vous devez être connecté pour proposer un événement.";
+    } else {
+        $title = trim($_POST['title']);
+        $description = trim($_POST['description']);
+        $event_date = trim($_POST['event_date']);
+        $event_time = trim($_POST['event_time']) ?: NULL;
+        $location = trim($_POST['location']);
+        $image_url = trim($_POST['image_url']) ?: NULL;
+        $max_participants = !empty($_POST['max_participants']) ? intval($_POST['max_participants']) : NULL;
+        
+        if (empty($title) || empty($description) || empty($event_date) || empty($location)) {
+            $error_msg = "Veuillez remplir tous les champs obligatoires.";
+        } else {
+            try {
+                // Insert with is_published = 0 for moderation
+                $stmt = $pdo->prepare("INSERT INTO events (title, description, event_date, event_time, location, image_url, max_participants, is_published, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)");
+                $stmt->execute([$title, $description, $event_date, $event_time, $location, $image_url, $max_participants, $_SESSION['user_id']]);
+                
+                $success_msg = "Votre événement a été soumis avec succès ! Il sera publié après validation par l'équipe.";
+            } catch (PDOException $e) {
+                $error_msg = "Erreur lors de la soumission : " . $e->getMessage();
+            }
+        }
+    }
+}
+
+// Fetch published events
+$stmt = $pdo->query("
+    SELECT * FROM events 
+    WHERE is_published = 1 
+    ORDER BY event_date ASC
+");
+$events = $stmt->fetchAll();
+
+// Separate upcoming and past events
+$upcoming_events = array_filter($events, fn($e) => $e['event_date'] >= date('Y-m-d'));
+$past_events = array_filter($events, fn($e) => $e['event_date'] < date('Y-m-d'));
+
+// Fetch published courses for sidebar
+$stmt_courses = $pdo->query("
+    SELECT c.*, u.first_name, u.last_name 
+    FROM courses c 
+    JOIN users u ON c.instructor_id = u.id 
+    WHERE c.is_published = 1 
+    ORDER BY c.created_at DESC 
+    LIMIT 5
+");
+$courses = $stmt_courses->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evènement Vedette | Centre De Formation</title>
+    <title>Événements | Centre De Formation</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .title-underline {
-            position: relative;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .title-underline::after {
-            content: "";
-            display: block;
-            position: absolute;
-            left: 50%;
-            bottom: -6px;
-            width: 0;
-            height: 3px;
-            background: var(--primary);
-            border-radius: 2px;
-            transform: translateX(-50%);
-            transition: width 0.45s cubic-bezier(.4, 2.3, .3, 1) 0s;
-        }
-
-        .title-underline:hover::after,
-        .title-underline:focus::after {
-            width: 70%;
-        }
-    </style>
 </head>
 
 <body>
+
     <!-- HEADER -->
     <header>
         <a href="index.php" class="logo-link" style="margin-left: 20px;">
@@ -50,9 +83,9 @@
                 <li><a href="blog.php">Blog</a></li>
                 <li><a href="panier.php">Panier</a></li>
                 <li><a href="paiement.php">Paiement</a></li>
-                <?php if (isset($_SESSION['user_id'])): 
-                    $dash = ($_SESSION['role'] == 'admin') ? 'admin_dashboard.php' : (($_SESSION['role'] == 'instructor') ? 'instructor_dashboard.php' : 'dashboard.php');
-                ?>
+
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php $dash = ($_SESSION['role'] == 'admin') ? 'admin_dashboard.php' : (($_SESSION['role'] == 'instructor') ? 'instructor_dashboard.php' : 'dashboard.php'); ?>
                     <li><a href="<?php echo $dash; ?>">Mon Espace</a></li>
                     <li><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
                 <?php else: ?>
@@ -62,222 +95,196 @@
         </nav>
     </header>
 
+    <!-- SIDEBAR TOGGLE -->
+    <input type="checkbox" id="menu-toggle">
+    <label for="menu-toggle" class="menu-btn">☰ Menu</label>
+
+    <!-- ASIDE (SIDEBAR) -->
     <aside>
-        <h2>Navigation Journée</h2>
-        <nav>
-            <ol>
-                <li><a href="#programme">Programme</a></li>
-                <li><a href="#speakers">Intervenants</a></li>
-                <li><a href="#inscription">Inscription</a></li>
-                <li>
-                    <a href="programme-journee.pdf" target="_blank">📥 Télécharger le programme (PDF)</a>
-                </li>
-            </ol>
-        </nav>
-        <div style="margin-top:2rem;color:#64748b;">
-            <strong>Support :</strong>
-            <br>
-            <a href="mailto:contact@formationpro.dz" style="color:#0ea5e9;">contact@formationpro.dz</a>
-            <br><br>
-            <span style="font-size:0.88em;">USDB Pavillon 1, Blida</span>
-        </div>
+        <h2>📅 Navigation</h2>
+        <ol>
+            <li><a href="#all-events">Tous les événements</a></li>
+            <li><a href="#upcoming">À venir</a></li>
+            <li><a href="#past">Événements passés</a></li>
+            <li><a href="#add-event">Proposer un événement</a></li>
+        </ol>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main>
-        <!-- 1. HERO (Bannière principale) -->
-        <section class="section-padding bg-dark hero-animated" style="text-align:center; padding: 6rem 2rem;">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-            <div style="position:relative; z-index:2;">
-                <h2 class="section-title-center"
-                    style="color:#fff; font-size:3.5rem; margin-bottom:1rem; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                    Journée Leadership & Innovation 2026</h2>
-                <p style="color:#e2e8f0; font-size:1.5rem; margin-bottom:2.5rem; font-weight:300;">
-                    12 mars 2026 • USDB Blida &amp; en ligne (Hybride)
-                </p>
-
-                <div class="glass-panel" style="display:inline-block; padding:2rem; max-width:600px; background:white;">
-                    <p style="margin-bottom:1.5rem; font-size:1.1rem; color:#64748b;">Rejoignez l'élite des leaders de
-                        demain.</p>
-                    <a href="#inscription" class="btn btn-primary"
-                        style="font-size:1.1rem; padding: 1rem 2rem;">S'inscrire maintenant</a>
-                    <a href="#programme" class="btn btn-secondary-dark"
-                        style="font-size:1.1rem; padding: 1rem 2rem; margin-left:1rem;">Voir
-                        le programme</a>
-                </div>
+        <!-- HERO SECTION -->
+        <section class="search-section">
+            <div class="search-container">
+                <h1>Événements & Workshops</h1>
+                <p class="search-subtitle">Participez à nos conférences, ateliers et formations spéciales</p>
             </div>
         </section>
 
-        <!-- 2. Description générale -->
-        <section class="section-padding">
-            <h3 class="section-title title-underline" style="text-align:center;width:100%;">Pourquoi participer à
-                l'événement ?</h3>
-            <p style="max-width:720px;margin: 0 auto 2rem auto; text-align:center; font-size:1.15rem;">
-                Cette journée unique rassemble des experts, formateurs et professionnels pour explorer l'excellence en
-                leadership et les innovations de 2026. Ouverte à tous : étudiants, cadres, entrepreneurs ou toute
-                personne souhaitant devenir acteur du changement !
-            </p>
-            <ul style="list-style:inside disc; max-width:660px; margin:0 auto; font-size:1.1rem; color:#0f172a;">
-                <li>Comprendre les pratiques de leadership moderne</li>
-                <li>Booster votre réseau et vos compétences clés</li>
-                <li>Ateliers interactifs et témoignages d'experts</li>
-            </ul>
-        </section>
+        <!-- EVENTS SECTION -->
+        <section class="section-padding" id="all-events">
+            <div class="container">
+                <h2 class="section-title" id="upcoming">📅 Événements à Venir</h2>
 
-        <!-- 3. Points forts (Key Highlights) -->
-        <section class="section-padding bg-light" style="padding-bottom:2rem;">
-            <h3 class="section-title-center title-underline" style="text-align:center;width:100%;">Points forts</h3>
-            <div class="features-grid">
-                <div class="feature-block">
-                    <div class="feature-icon">🎤</div>
-                    <h3>Intervenants experts</h3>
-                    <p>Des leaders de l'industrie et formateurs certifiés</p>
-                </div>
-                <div class="feature-block">
-                    <div class="feature-icon">📜</div>
-                    <h3>Attestation offerte</h3>
-                    <p>Recevez un certificat de participation officiel</p>
-                </div>
-                <div class="feature-block">
-                    <div class="feature-icon">📎</div>
-                    <h3>Ressources exclusives</h3>
-                    <p>Slides PDF, replay vidéo, livre blanc</p>
-                </div>
-                <div class="feature-block">
-                    <div class="feature-icon">🤝</div>
-                    <h3>Networking</h3>
-                    <p>Espaces d'échanges & ateliers pratiques</p>
-                </div>
+                <?php if (empty($upcoming_events)): ?>
+                    <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius); border: 1px solid var(--border);">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+                        <h3 style="margin-bottom: 1rem; color: var(--secondary);">Aucun événement prévu pour le moment</h3>
+                        <p style="color: var(--text-light);">Revenez bientôt pour découvrir nos prochains workshops !</p>
+                    </div>
+                <?php else: ?>
+                    <div class="formations-grid">
+                        <?php foreach($upcoming_events as $event): ?>
+                            <article class="formation">
+                                <?php if (!empty($event['image_url'])): ?>
+                                    <div class="formation-thumb">
+                                        <img src="<?php echo htmlspecialchars($event['image_url']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
+                                        <span class="badge" style="background: var(--success);">À VENIR</span>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="formation-thumb">
+                                        <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                                            📅
+                                        </div>
+                                        <span class="badge" style="background: var(--success);">À VENIR</span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="formation-content">
+                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                    
+                                    <div class="formation-meta">
+                                        <span class="meta-item">📅 <?php echo date('d F Y', strtotime($event['event_date'])); ?></span>
+                                        <?php if ($event['event_time']): ?>
+                                            <span class="meta-item">🕐 <?php echo date('H:i', strtotime($event['event_time'])); ?></span>
+                                        <?php endif; ?>
+                                        <span class="meta-item">📍 <?php echo htmlspecialchars($event['location']); ?></span>
+                                    </div>
+                                    
+                                    <p><?php echo htmlspecialchars(substr($event['description'], 0, 120)); ?>...</p>
+                                    
+                                    <?php if ($event['max_participants']): ?>
+                                        <div style="margin-top: 1rem; color: var(--text-light); font-size: 0.9rem;">
+                                            <strong>👥 Places limitées :</strong> <?php echo $event['max_participants']; ?> participants max
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($past_events)): ?>
+                    <h2 class="section-title" id="past" style="margin-top: 4rem; opacity: 0.7;">🕒 Événements Passés</h2>
+                    <div class="formations-grid" style="opacity: 0.6;">
+                        <?php foreach($past_events as $event): ?>
+                            <article class="formation">
+                                <?php if (!empty($event['image_url'])): ?>
+                                    <div class="formation-thumb">
+                                        <img src="<?php echo htmlspecialchars($event['image_url']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
+                                        <span class="badge" style="background: var(--text-light);">TERMINÉ</span>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="formation-thumb">
+                                        <div style="width: 100%; height: 200px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 3rem;">
+                                            📅
+                                        </div>
+                                        <span class="badge" style="background: var(--text-light);">TERMINÉ</span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="formation-content">
+                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                    
+                                    <div class="formation-meta">
+                                        <span class="meta-item">📅 <?php echo date('d F Y', strtotime($event['event_date'])); ?></span>
+                                        <span class="meta-item">📍 <?php echo htmlspecialchars($event['location']); ?></span>
+                                    </div>
+                                    
+                                    <p><?php echo htmlspecialchars(substr($event['description'], 0, 120)); ?>...</p>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 
-        <!-- 4. Programme détaillé (VERTICAL TIMELINE) -->
-        <section class="section-padding" id="programme">
-            <h3 class="section-title title-underline" style="text-align:center;width:100%; margin-bottom:3rem;">
-                Programme de la Journée</h3>
-
-            <div class="timeline-section">
-                <!-- Item 1 -->
-                <div class="timeline-item left">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">09h00</span>
-                        <h4>Ouverture &amp; Bienvenue</h4>
-                        <p>Accueil des participants, café de bienvenue et présentation des objectifs.</p>
+        <!-- PROPOSE EVENT SECTION -->
+        <section class="section-padding" id="add-event" style="background: #f8fafc;">
+            <div class="container" style="max-width: 800px;">
+                <h2 class="section-title">📝 Proposer un Événement</h2>
+                
+                <?php if (!empty($success_msg)): ?>
+                    <div style="background: #dcfce7; color: #166534; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #bbf7d0;">
+                        ✅ <?php echo $success_msg; ?>
                     </div>
-                </div>
+                <?php endif; ?>
 
-                <!-- Item 2 -->
-                <div class="timeline-item right">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">09h45</span>
-                        <h4>Keynote: Leadership d'impact</h4>
-                        <p>Conférence inspirante par Sarah Martinez sur les tendances 2026.</p>
+                <?php if (!empty($error_msg)): ?>
+                    <div style="background: #fee2e2; color: #991b1b; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid #fecaca;">
+                        ❌ <?php echo $error_msg; ?>
                     </div>
+                <?php endif; ?>
+
+                <div style="background: white; padding: 2.5rem; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <?php if (!isset($_SESSION['user_id'])): ?>
+                        <div style="text-align: center; padding: 2rem;">
+                            <p style="margin-bottom: 1.5rem; color: var(--text-light);">Vous devez être connecté pour proposer un événement.</p>
+                            <a href="login.php" class="btn btn-primary">Se connecter</a>
+                        </div>
+                    <?php else: ?>
+                        <p style="margin-bottom: 2rem; color: var(--text-light);">
+                            Vous souhaitez organiser un workshop, une conférence ou un atelier ? Proposez-le ici ! 
+                            Votre événement sera examiné par notre équipe avant publication.
+                        </p>
+
+                        <form method="POST" action="">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Titre de l'événement <span style="color: red;">*</span></label>
+                                <input type="text" name="title" required maxlength="255" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description <span style="color: red;">*</span></label>
+                                <textarea name="description" required rows="5" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date <span style="color: red;">*</span></label>
+                                    <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Heure (optionnel)</label>
+                                    <input type="time" name="event_time" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Lieu <span style="color: red;">*</span></label>
+                                <input type="text" name="location" required maxlength="255" placeholder="Ex: USDB Pavillon 1, Blida" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">URL de l'image (optionnel)</label>
+                                <input type="url" name="image_url" maxlength="500" placeholder="https://exemple.com/image.jpg" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <div style="margin-bottom: 2rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Nombre maximum de participants (optionnel)</label>
+                                <input type="number" name="max_participants" min="1" placeholder="Ex: 50" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;">
+                            </div>
+
+                            <button type="submit" name="submit_event" class="btn btn-primary" style="width: 100%;">
+                                Soumettre l'événement
+                            </button>
+                        </form>
+                    <?php endif; ?>
                 </div>
-
-                <!-- Item 3 -->
-                <div class="timeline-item left">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">11h00</span>
-                        <h4>Atelier « Innovation Agile »</h4>
-                        <p>Travaux pratiques en groupes : méthodes et outils pour innover.</p>
-                    </div>
-                </div>
-
-                <!-- Item 4 -->
-                <div class="timeline-item right">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">12h30</span>
-                        <h4>Pause Déjeuner &amp; Networking</h4>
-                        <p>Buffet traiteur et opportunités d'échanges avec les experts.</p>
-                    </div>
-                </div>
-
-                <!-- Item 5 -->
-                <div class="timeline-item left">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">14h00</span>
-                        <h4>Table Ronde : Diriger le Futur</h4>
-                        <p>Panel de discussion avec Ilyes Chelly et Dr. Ben Amar.</p>
-                    </div>
-                </div>
-
-                <!-- Item 6 -->
-                <div class="timeline-item right">
-                    <div class="timeline-dot"></div>
-                    <div class="timeline-content">
-                        <span class="timeline-time">15h30</span>
-                        <h4>Q&A & Clôture</h4>
-                        <p>Session questions/réponses et remise des attestations.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 5. Les formateurs (Speakers / Experts) -->
-        <section class="section-padding bg-light" id="speakers">
-            <h3 class="section-title-center title-underline" style="text-align:center;width:100%;">Nos Intervenants</h3>
-            <div class="features-grid" style="gap:2.5rem;">
-                <!-- Speaker 1 -->
-                <div class="speaker-card">
-                    <div class="speaker-avatar">
-
-                    </div>
-                    <h3>Iyad Bencherchali</h3>
-                    <div class="speaker-role">Experte Leadership</div>
-                    <p>10+ ans d'expérience en conseil stratégique pour des multinationales.</p>
-                </div>
-
-                <!-- Speaker 2 -->
-                <div class="speaker-card">
-                    <div class="speaker-avatar">
-
-                        <!-- Placeholder fallback if image missing -->
-                    </div>
-                    <h3>Fouad Hmida</h3>
-                    <div class="speaker-role">Coach Innovation</div>
-                    <p>Enseignant chercheur spécialisé dans les méthodologies agiles.</p>
-                </div>
-
-                <!-- Speaker 3 -->
-                <div class="speaker-card">
-                    <div class="speaker-avatar">
-
-                    </div>
-                    <h3>Mme Midoun</h3>
-                    <div class="speaker-role">Tech Entrepreneur</div>
-                    <p>Fondateur de 3 startups et mentor pour jeunes entrepreneurs.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- 9. Section finale CTA -->
-        <section class="section-padding" id="inscription">
-            <div class="newsletter-box glass-panel"
-                style="max-width:600px; margin:0 auto; background: linear-gradient(135deg, var(--primary), #06b6d4);">
-                <h2>Prêt·e à participer ?</h2>
-                <p>Réservez gratuitement votre place maintenant et boostez votre avenir professionnel !</p>
-                <form class="newsletter-form"
-                    style="display:flex; gap:0.5rem; justify-content:center; margin-top:1.5rem;">
-                    <input type="email" placeholder="Votre email professionnel"
-                        style="padding:1rem; border-radius:50px; border:none; width:60%;">
-                    <button type="button" class="btn btn-secondary"
-                        style="background:white; color:var(--primary); border:none;">Je m'inscris</button>
-                </form>
-                <br>
-                <span style="color:white; opacity:0.8; font-size:0.9rem;">Besoin d'aide ? <a
-                        href="mailto:contact@formationpro.dz"
-                        style="text-decoration:underline;">contact@formationpro.dz</a></span>
             </div>
         </section>
     </main>
 
-    <!-- FOOTER -->
     <footer>
         <p><strong>Contact :</strong> 0667 81 23 51 | contact@formationpro.dz</p>
         <p>Adresse : USDB Pavillon 1, Blida</p>
@@ -285,13 +292,5 @@
         <img src="images.jpg" alt="Image du panier" width="100">
     </footer>
 
-    <style>
-        .inscription-btn-dark:hover {
-            background: var(--primary) !important;
-            color: #fff !important;
-            border-color: var(--primary) !important;
-        }
-    </style>
 </body>
-
 </html>

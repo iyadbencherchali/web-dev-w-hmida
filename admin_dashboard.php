@@ -297,7 +297,8 @@ try {
                 <li><a href="index.php">Accueil</a></li>
                 <li><a href="admin_dashboard.php" class="active"><b>Dashboard Admin</b></a></li>
                 <li><a href="admin_users.php">👥 Utilisateurs</a></li>
-                <li><a href="admin_courses.php">� Modération</a></li>
+                <li><a href="admin_courses.php">📚 Modération</a></li>
+                <li><a href="admin_events.php">📅 Événements</a></li>
                 <li><a href="admin_sales.php">💳 Finances</a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>

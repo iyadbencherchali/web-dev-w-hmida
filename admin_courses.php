@@ -303,6 +303,7 @@ $pending_courses = count(array_filter($courses, fn($c) => $c['is_published'] == 
                 <li><a href="admin_dashboard.php">Dashboard Admin</a></li>
                 <li><a href="admin_users.php">👥 Utilisateurs</a></li>
                 <li><a href="admin_courses.php" class="active"><b>📚 Modération</b></a></li>
+                <li><a href="admin_events.php">📅 Événements</a></li>
                 <li><a href="admin_sales.php">💳 Finances</a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>

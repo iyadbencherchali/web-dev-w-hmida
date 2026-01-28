@@ -233,6 +233,7 @@ $monthly_revenue = $pdo->query("
                 <li><a href="admin_dashboard.php">Dashboard Admin</a></li>
                 <li><a href="admin_users.php">👥 Utilisateurs</a></li>
                 <li><a href="admin_courses.php">📚 Modération</a></li>
+                <li><a href="admin_events.php">📅 Événements</a></li>
                 <li><a href="admin_sales.php" class="active"><b>💳 Finances</b></a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
             </ul>
