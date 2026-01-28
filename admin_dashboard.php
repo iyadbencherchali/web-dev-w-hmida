@@ -300,6 +300,7 @@ try {
                 <li><a href="admin_courses.php">📚 Modération</a></li>
                 <li><a href="admin_events.php">📅 Événements</a></li>
                 <li><a href="admin_reviews.php">⭐ Avis</a></li>
+                <li><a href="admin_promotions.php">🎁 Promotions</a></li>
                 <li><a href="admin_sales.php">💳 Finances</a></li>
                 <li><a href="admin_questions.php">💬 Support</a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>
@@ -449,6 +450,14 @@ try {
                                     <div>
                                         <div>Rapport financier</div>
                                         <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">Analyse des revenus</div>
+                                    </div>
+                                </a>
+
+                                <a href="admin_promotions.php" class="action-btn">
+                                    <span class="action-icon">🎁</span>
+                                    <div>
+                                        <div>Gérer promotions</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 500;">Réductions actives</div>
                                     </div>
                                 </a>
                             </div>

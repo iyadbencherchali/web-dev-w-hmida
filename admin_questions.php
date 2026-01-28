@@ -216,6 +216,7 @@ $pending_questions = count(array_filter($questions, fn($q) => $q['status'] == 'i
                 <li><a href="admin_courses.php">📚 Modération</a></li>
                 <li><a href="admin_events.php">📅 Événements</a></li>
                 <li><a href="admin_reviews.php">⭐ Avis</a></li>
+                <li><a href="admin_promotions.php">🎁 Promotions</a></li>
                 <li><a href="admin_sales.php">💳 Finances</a></li>
                 <li><a href="admin_questions.php" class="active"><b>💬 Support</b></a></li>
                 <li id="logout"><a href="logout.php" style="color: var(--danger)">Déconnexion</a></li>

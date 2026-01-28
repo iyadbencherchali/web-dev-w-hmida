@@ -1,13 +1,16 @@
 <?php
-// Panier dynamique - PHP
 session_start();
 require_once 'config.php';
 
-// Calculate Total
+// Calculate Total and Savings
 $total = 0;
+$total_savings = 0;
 if (!empty($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $item) {
         $total += $item['price'];
+        if (isset($item['original_price']) && $item['original_price'] > $item['price']) {
+            $total_savings += ($item['original_price'] - $item['price']);
+        }
     }
 }
 ?>
@@ -234,7 +237,16 @@ if (!empty($_SESSION['cart'])) {
                             </div>
                           </div>
                         </td>
-                        <td><strong><?php echo number_format($item['price'], 0, '.', ','); ?> DA</strong></td>
+                        <td>
+                          <?php if (isset($item['original_price']) && $item['original_price'] > $item['price']): ?>
+                            <span style="text-decoration: line-through; color: var(--text-light); font-size: 0.9rem; margin-right: 0.5rem;">
+                              <?php echo number_format($item['original_price'], 0, '.', ','); ?> DA
+                            </span>
+                            <strong style="color: #10b981;"><?php echo number_format($item['price'], 0, '.', ','); ?> DA</strong>
+                          <?php else: ?>
+                            <strong><?php echo number_format($item['price'], 0, '.', ','); ?> DA</strong>
+                          <?php endif; ?>
+                        </td>
                         <td>
                             <a href="cart.php?action=remove&id=<?php echo $id; ?>" class="remove-btn">Supprimer</a>
                         </td>
@@ -256,11 +268,11 @@ if (!empty($_SESSION['cart'])) {
 
               <div class="summary-row">
                 <span>Sous-total</span>
-                <span><?php echo number_format($total, 0, '.', ','); ?> DA</span>
+                <span><?php echo number_format($total + $total_savings, 0, '.', ','); ?> DA</span>
               </div>
-              <div class="summary-row">
+              <div class="summary-row" style="color: #10b981; font-weight: 600;">
                 <span>Réduction</span>
-                <span>-0 DA</span>
+                <span>-<?php echo number_format($total_savings, 0, '.', ','); ?> DA</span>
               </div>
 
               <div class="summary-row summary-total">

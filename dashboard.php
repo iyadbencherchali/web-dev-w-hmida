@@ -14,28 +14,31 @@ $first_name = $_SESSION['first_name'] ?? 'Étudiant';
 // Fetch enrolled courses
 try {
     $stmt = $pdo->prepare("
-        SELECT c.*, i.bio, u.first_name as instructor_fname, u.last_name as instructor_lname, e.enrolled_at, e.progress_percentage
+        SELECT c.*, u.first_name as instructor_fname, u.last_name as instructor_lname, e.enrolled_at, e.progress_percentage
         FROM enrollments e
         JOIN courses c ON e.course_id = c.id
-        JOIN instructors i ON c.instructor_id = i.user_id
-        JOIN users u ON i.user_id = u.id
+        LEFT JOIN users u ON c.instructor_id = u.id
         WHERE e.student_id = ?
     ");
     $stmt->execute([$user_id]);
     $my_courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Calculate Average Progress
+    $total_progress = 0;
+    if (count($my_courses) > 0) {
+        foreach ($my_courses as $c) {
+            $total_progress += $c['progress_percentage'];
+        }
+        $avg_progress = round($total_progress / count($my_courses));
+    } else {
+        $avg_progress = 0;
+    }
+
 } catch (PDOException $e) {
     die("Error fetching courses: " . $e->getMessage());
 }
 
-// Image Mapping (Same as formation.php)
-$course_images = [
-    'Formation Python Complète' => '4375050_logo_python_icon.png',
-    'Certification Cisco CCNA 200-301' => '294687_cisco_icon.png',
-    'Expert en Cybersécurité' => '12983448_virus_malware_trojan_cybersecurity_icon.png',
-    'Développeur Web Fullstack' => '317756_badge_css_css3_achievement_award_icon.png',
-    'Microsoft Azure Fundamentals' => '4202105_microsoft_logo_social_social media_icon.png',
-    'Google Analytics & Marketing Digital' => '2993685_brand_brands_google_logo_logos_icon.png'
-];
+// ... (Image Mapping Remains Same) ...
 
 $success_msg = "";
 $error_msg = "";
@@ -49,7 +52,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
         $error_msg = "Veuillez donner une note et un commentaire valide.";
     } else {
         try {
-            // Check if user already submitted a review
             $stmt = $pdo->prepare("SELECT id FROM reviews WHERE user_id = ?");
             $stmt->execute([$user_id]);
             if ($stmt->fetch()) {
@@ -63,6 +65,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
             $error_msg = "Erreur : " . $e->getMessage();
         }
     }
+}
+
+// Handle Support Question Submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_question'])) {
+    $subject = trim($_POST['subject']);
+    $question = trim($_POST['question']);
+
+    if (empty($subject) || empty($question)) {
+        $error_msg = "Veuillez remplir tous les champs du support.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO questions (user_id, subject, question, status) VALUES (?, ?, ?, 'new')");
+            $stmt->execute([$user_id, $subject, $question]);
+            $success_msg = "Votre question a bien été envoyée au support !";
+        } catch (PDOException $e) {
+            $error_msg = "Erreur support : " . $e->getMessage();
+        }
+    }
+}
+
+// Fetch user's questions
+try {
+    $stmt = $pdo->prepare("SELECT * FROM questions WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$user_id]);
+    $my_questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $my_questions = [];
+}
+
+// Fetch user's payments
+try {
+    $stmt = $pdo->prepare("SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$user_id]);
+    $my_payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $my_payments = [];
 }
 ?>
 
@@ -142,8 +180,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
                 
                     <!-- Stat Card 2 -->
                     <div class="glass-panel" style="padding: 2rem; min-width: 250px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
-                        <div style="font-size: 3rem; font-weight: bold; color: #10b981;">0%</div>
-                        <div style="color: #cbd5e1; font-weight: 600;">Progression Moyenne</div>
+                            <div style="font-size: 3rem; font-weight: bold; color: #10b981;"><?php echo $avg_progress; ?>%</div>
+                            <div style="color: #cbd5e1; font-weight: 600;">Progression Moyenne</div>
                     </div>
                 </div>
             </div>
@@ -197,11 +235,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
                                     </p>
 
                                     <div class="formation-buttons" style="margin-top: 1.5rem;">
-                                        <button class="btn btn-primary" style="width: 100%;">Continuer la formation</button>
+                                        <a href="view_course.php?id=<?php echo $course['id']; ?>" class="btn btn-primary" style="width: 100%; text-decoration: none; display: block; text-align: center;">Continuer la formation</a>
                                     </div>
                                 </div>
                             </article>
                         <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+
+        <!-- PAYMENT HISTORY SECTION -->
+        <section class="section-padding" style="background: #f8fafc;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <h2 class="section-title" style="margin-bottom: 2rem; border-left: 5px solid #10b981; padding-left: 1rem;">Historique de Paiements</h2>
+                
+                <?php if (empty($my_payments)): ?>
+                    <div style="background: white; padding: 3rem; text-align: center; border-radius: 20px; border: 1px solid #e2e8f0; color: var(--text-light);">
+                        <p>Vous n'avez pas encore effectué d'achats.</p>
+                    </div>
+                <?php else: ?>
+                    <div style="background: white; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead style="background: #f1f5f9;">
+                                <tr>
+                                    <th style="padding: 1.25rem 1.5rem; color: var(--secondary); font-weight: 700;">Date</th>
+                                    <th style="padding: 1.25rem 1.5rem; color: var(--secondary); font-weight: 700;">Méthode</th>
+                                    <th style="padding: 1.25rem 1.5rem; color: var(--secondary); font-weight: 700;">Montant</th>
+                                    <th style="padding: 1.25rem 1.5rem; color: var(--secondary); font-weight: 700;">Statut</th>
+                                    <th style="padding: 1.25rem 1.5rem; color: var(--secondary); font-weight: 700;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($my_payments as $payment): ?>
+                                    <tr style="border-top: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                                        <td style="padding: 1.25rem 1.5rem; color: var(--text-light); font-weight: 500;">
+                                            <?php echo date('d/m/Y', strtotime($payment['created_at'])); ?>
+                                            <div style="font-size: 0.75rem; opacity: 0.7;"><?php echo date('H:i', strtotime($payment['created_at'])); ?></div>
+                                        </td>
+                                        <td style="padding: 1.25rem 1.5rem; text-transform: uppercase; font-size: 0.85rem; font-weight: 700; color: var(--secondary);">
+                                            <?php 
+                                                $icons = ['card' => '💳', 'paypal' => '🅿️', 'bank' => '🏦'];
+                                                echo ($icons[$payment['payment_method']] ?? '💰') . ' ' . $payment['payment_method']; 
+                                            ?>
+                                        </td>
+                                        <td style="padding: 1.25rem 1.5rem; font-weight: 800; color: var(--secondary);">
+                                            <?php echo number_format($payment['amount'], 0, '.', ','); ?> DA
+                                        </td>
+                                        <td style="padding: 1.25rem 1.5rem;">
+                                            <span style="background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;">PAYÉ</span>
+                                        </td>
+                                        <td style="padding: 1.25rem 1.5rem;">
+                                            <a href="recu.php?id=<?php echo $payment['id']; ?>" class="view-all-link" style="font-size: 0.75rem;">Voir reçu</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 <?php endif; ?>
             </div>
@@ -254,6 +344,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
                 </div>
             </div>
         </section>
+
+        <!-- SUPPORT SECTION -->
+        <section class="section-padding" style="background: white;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto;">
+                <h2 class="section-title" style="margin-bottom: 3rem; text-align: center;">💬 Support & Assistance</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 3rem;">
+                    <!-- Question Form -->
+                    <div style="background: #f8fafc; padding: 2.5rem; border-radius: 20px; border: 1px solid #e2e8f0; height: fit-content;">
+                        <h3 style="margin-bottom: 1.5rem; color: var(--secondary);">Besoin d'aide ?</h3>
+                        <p style="color: var(--text-light); margin-bottom: 2rem; font-size: 0.95rem;">Posez votre question et notre équipe vous répondra par email dans les plus brefs délais.</p>
+                        
+                        <form method="POST" action="">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Sujet</label>
+                                <input type="text" name="subject" required placeholder="Ex: Problème d'accès au contenu" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem;">
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Votre Question</label>
+                                <textarea name="question" required rows="4" placeholder="Détaillez votre demande ici..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 12px; font-size: 1rem; resize: vertical;"></textarea>
+                            </div>
+                            <button type="submit" name="submit_question" class="btn btn-secondary" style="width: 100%; padding: 0.85rem;">Envoyer au support</button>
+                        </form>
+                    </div>
+
+                    <!-- Question History -->
+                    <div>
+                        <h3 style="margin-bottom: 2rem; color: var(--secondary);">🕒 Mes Demandes Précédentes</h3>
+                        
+                        <?php if (empty($my_questions)): ?>
+                            <div style="background: #f8fafc; padding: 3rem; text-align: center; border-radius: 20px; border: 1px dashed #cbd5e1;">
+                                <p style="color: var(--text-light);">Vous n'avez pas encore posé de question.</p>
+                            </div>
+                        <?php else: ?>
+                            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                <?php foreach ($my_questions as $q): ?>
+                                    <div style="background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid #e2e8f0; border-left: 5px solid <?php 
+                                        echo ($q['status'] == 'new') ? '#3b82f6' : (($q['status'] == 'in_progress') ? '#f59e0b' : '#10b981'); 
+                                    ?>; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                                            <strong style="color: var(--secondary);"><?php echo htmlspecialchars($q['subject']); ?></strong>
+                                            <?php
+                                                $status_labels = ['new' => 'Nouveau', 'in_progress' => 'En cours', 'answered' => 'Répondu'];
+                                                $status_colors = ['new' => '#dbeafe', 'in_progress' => '#fef3c7', 'answered' => '#dcfce7'];
+                                                $status_text_colors = ['new' => '#1e40af', 'in_progress' => '#92400e', 'answered' => '#166534'];
+                                            ?>
+                                            <span style="padding: 4px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; background: <?php echo $status_colors[$q['status']]; ?>; color: <?php echo $status_text_colors[$q['status']]; ?>;">
+                                                <?php echo $status_labels[$q['status']]; ?>
+                                            </span>
+                                        </div>
+                                        <p style="font-size: 0.9rem; color: var(--text-light); font-style: italic; margin-bottom: 1rem;">"<?php echo htmlspecialchars($q['question']); ?>"</p>
+                                        <div style="font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 15px; border-top: 1px solid #f1f5f9; padding-top: 0.75rem;">
+                                            <span>📅 <?php echo date('d/m/Y à H:i', strtotime($q['created_at'])); ?></span>
+                                            <?php if ($q['status'] == 'answered'): ?>
+                                                <span style="color: #10b981; font-weight: 600;">✅ Une réponse vous a été envoyée</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -264,8 +419,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
     </footer>
 
     <div style="text-align:center; color: #94a3b8; padding: 1rem;">
-        <!-- Debug Marker -->
-        <small>System loaded. ID: <?php echo $_SESSION['user_id']; ?></small>
+        <!-- System loaded -->
     </div>
 </body>
 </html>

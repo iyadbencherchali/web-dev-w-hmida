@@ -161,11 +161,14 @@ foreach ($courses as $c) {
         $stmt->execute([$c['title']]);
         
         if (!$stmt->fetch()) {
-            $stmt = $pdo->prepare("INSERT INTO courses (instructor_id, title, description, difficulty_level, price, is_published) VALUES (?, ?, ?, ?, ?, 1)");
+            $stmt = $pdo->prepare("INSERT INTO courses (instructor_id, title, description, difficulty_level, price, max_students, is_published) VALUES (?, ?, ?, ?, ?, 20, 1)");
             $stmt->execute([$inst_id, $c['title'], $c['description'], $c['difficulty_level'], $c['price']]);
             echo "Inserted course: {$c['title']}<br>";
         } else {
-            echo "Course already exists: {$c['title']}<br>";
+            // Update existing courses to have 20 seats for demo
+            $stmt = $pdo->prepare("UPDATE courses SET max_students = 20 WHERE id = (SELECT id FROM (SELECT id FROM courses WHERE title = ?) as tmp)");
+            $stmt->execute([$c['title']]);
+            echo "Updated course seats: {$c['title']}<br>";
         }
     } catch (PDOException $e) {
         echo "Error inserting {$c['title']}: " . $e->getMessage() . "<br>";

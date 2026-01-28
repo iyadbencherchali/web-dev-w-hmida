@@ -16,7 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['course_id'])) {
 
     if (isset($_POST['action']) && $_POST['action'] === 'enroll') {
         try {
-            // Check if already enrolled
+            // 1. Check if seats are available
+            $courseStmt = $pdo->prepare("SELECT max_students FROM courses WHERE id = ?");
+            $courseStmt->execute([$course_id]);
+            $course = $courseStmt->fetch();
+
+            if ($course && $course['max_students'] <= 0) {
+                header("Location: formation.php?error=no_seats");
+                exit();
+            }
+
+            // 2. Check if already enrolled
             $checkStmt = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ?");
             $checkStmt->execute([$user_id, $course_id]);
             
@@ -26,9 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['course_id'])) {
                 exit();
             }
 
-            // Enroll user
+            // 3. Enroll user and decrement seats
+            $pdo->beginTransaction();
+            
+            // 3.a Ensure student profile exists
+            $stmt = $pdo->prepare("INSERT IGNORE INTO students (user_id) VALUES (?)");
+            $stmt->execute([$user_id]);
+
             $stmt = $pdo->prepare("INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)");
             $stmt->execute([$user_id, $course_id]);
+
+            $updateStmt = $pdo->prepare("UPDATE courses SET max_students = max_students - 1 WHERE id = ?");
+            $updateStmt->execute([$course_id]);
+
+            $pdo->commit();
 
             header("Location: dashboard.php?msg=enroll_success");
             exit();

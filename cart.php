@@ -30,11 +30,19 @@ if (isset($_REQUEST['action'])) {
             $course = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($course) {
+                // Use discounted price if on promotion
+                $final_price = $course['price'];
+                if (isset($course['is_on_promotion']) && $course['is_on_promotion'] == 1) {
+                    $final_price = $course['discounted_price'] ?? $course['price'];
+                }
+
                 $_SESSION['cart'][$course_id] = [
                     'id' => $course['id'],
                     'title' => $course['title'],
-                    'price' => $course['price'],
-                    'instructor_id' => $course['instructor_id'] // You might want to fetch instructor name too
+                    'price' => $final_price,
+                    'original_price' => $course['price'],
+                    'is_on_promotion' => $course['is_on_promotion'] ?? 0,
+                    'instructor_id' => $course['instructor_id']
                 ];
                 header("Location: panier.php?msg=added");
                 exit();

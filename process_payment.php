@@ -20,10 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SESSION['cart'])) {
     }
 
     try {
-        $pdo->beginTransaction();
-
-        // 1. Create Payment Record (Simulated "Receipt")
-        // We'll create the payments table if it doesn't exist for the purpose of this TP
+        // 1. Ensure table exists (DDL outside transaction to avoid implicit commit)
         $pdo->exec("CREATE TABLE IF NOT EXISTS payments (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT NOT NULL,
@@ -33,36 +30,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SESSION['cart'])) {
             FOREIGN KEY (user_id) REFERENCES users(id)
         )");
 
+        $pdo->beginTransaction();
+
+        // 2. Create Payment Record (Simulated "Receipt")
         $payment_method = $_POST['payment_method'] ?? 'card';
         $stmt = $pdo->prepare("INSERT INTO payments (user_id, amount, payment_method) VALUES (?, ?, ?)");
         $stmt->execute([$user_id, $amount, $payment_method]);
         $payment_id = $pdo->lastInsertId();
 
-        // 2. Enroll User in Courses
+        // 1.b Ensure student profile exists
+        $stmt = $pdo->prepare("INSERT IGNORE INTO students (user_id) VALUES (?)");
+        $stmt->execute([$user_id]);
+
+        // 3. Enroll User in Courses
         foreach ($_SESSION['cart'] as $item) {
             $course_id = $item['id'];
 
-            // Check if already enrolled to avoid duplicates
+            // 3.a Check if seats are available
+            $courseStmt = $pdo->prepare("SELECT max_students FROM courses WHERE id = ? FOR UPDATE");
+            $courseStmt->execute([$course_id]);
+            $courseInfo = $courseStmt->fetch();
+
+            if ($courseInfo && $courseInfo['max_students'] <= 0) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                header("Location: panier.php?error=course_full&title=" . urlencode($item['title']));
+                exit();
+            }
+
+            // Check if already enrolled
             $check = $pdo->prepare("SELECT id FROM enrollments WHERE student_id = ? AND course_id = ?");
             $check->execute([$user_id, $course_id]);
             
             if (!$check->fetch()) {
                 $enroll = $pdo->prepare("INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)");
                 $enroll->execute([$user_id, $course_id]);
+
+                // Decrement seats
+                $updateSeats = $pdo->prepare("UPDATE courses SET max_students = max_students - 1 WHERE id = ?");
+                $updateSeats->execute([$course_id]);
             }
         }
 
         $pdo->commit();
 
-        // 3. Clear Cart
+        // 4. Clear Cart
         unset($_SESSION['cart']);
 
-        // 4. Redirect to Dashboard with success message
+        // 5. Redirect to Dashboard
         header("Location: dashboard.php?msg=payment_success&receipt=" . $payment_id);
         exit();
 
     } catch (PDOException $e) {
-        $pdo->rollBack();
+        if ($pdo->inTransaction()) $pdo->rollBack();
         die("Transaction failed: " . $e->getMessage());
     }
 
